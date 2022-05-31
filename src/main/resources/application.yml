@@ -1,0 +1,31 @@
+server:
+  port: 8081
+spring:
+  kafka:
+    bootstrap-servers: moped-01.srvs.cloudkafka.com:9094,moped-02.srvs.cloudkafka.com:9094,moped-03.srvs.cloudkafka.com:9094
+    properties:
+      security:
+        protocol: SASL_SSL
+      sasl:
+        mechanism: SCRAM-SHA-256
+        jaas:
+          config: org.apache.kafka.common.security.scram.ScramLoginModule required username="ewk3pk5f" password="YYOpwGUHkcEBC-wRUOfblNdIdwBp20gh";
+  cloud:
+    function:
+      definition: saveWallet
+    stream:
+      bindings:
+        saveWallet-in-0:
+          destination: ewk3pk5f-default
+  application:
+    name: wallet-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/walletdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: root
+    password: Buho21blackwin
+  jpa:
+    hibernate:
+      ddl-auto: update
+  sql:
+    init:
+      platform: mysql

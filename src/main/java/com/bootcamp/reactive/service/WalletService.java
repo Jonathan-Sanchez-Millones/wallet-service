@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.bootcamp.reactive.config.CacheConfig;
 import com.bootcamp.reactive.dto.PayDto;
+import com.bootcamp.reactive.dto.UserDto;
 import com.bootcamp.reactive.entity.User;
 import com.bootcamp.reactive.entity.Wallet;
 import com.bootcamp.reactive.repository.WalletRepository;
@@ -22,37 +23,48 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class WalletService {
 
-	
 	@Autowired
 	private WalletRepository repository;
-	
+
 	@Bean
-	Consumer<User> saveWallet() {
-		
-		
-		return user -> {
-			log.info("User: " + user);
+	Consumer<UserDto> saveWallet() {
+
+		return userDto -> {
+			log.info("UserDto: " + userDto);
 			Wallet yunki = new Wallet();
-			yunki.setPhoneNumber(user.getPhoneNumber());
-			yunki.setSaldo(0);
+			yunki.setPhoneNumber(userDto.getUser().getPhoneNumber());
+			yunki.setSaldo(userDto.getSaldoInicial());
 			repository.save(yunki);
 		};
 	}
-	
-	@Cacheable(cacheNames = CacheConfig.WALLET_CACHE, key="#phoneNumber", unless="#result == null")
+
+	@Cacheable(cacheNames = CacheConfig.WALLET_CACHE, key = "#phoneNumber", unless = "#result == null")
 	public Wallet findByPhoneNumber(Long phoneNumber) {
-		
+
 		return repository.findByPhoneNumber(phoneNumber);
 	}
-	
-	@CachePut(cacheNames = CacheConfig.WALLET_CACHE, unless = "#result == null")
-    public Wallet doPay(PayDto pago) {
-        Wallet sender = repository.findByPhoneNumber(pago.getPhoneNumberSender());
-        sender.setSaldo(sender.getSaldo()-pago.getAmount());
-        repository.save(sender);
-        Wallet receiver = repository.findByPhoneNumber(pago.getPhoneNumberReceiver());
-        receiver.setSaldo(receiver.getSaldo()+pago.getAmount());
-        return repository.save(receiver);
-    }
-}
 
+	@CachePut(cacheNames = CacheConfig.WALLET_CACHE, unless = "#result == null")
+	public Wallet doPay(PayDto pago) {
+		Wallet sender = repository.findByPhoneNumber(pago.getPhoneNumberSender());
+		sender.setSaldo(sender.getSaldo() - pago.getAmount());
+		repository.save(sender);
+		Wallet receiver = repository.findByPhoneNumber(pago.getPhoneNumberReceiver());
+		receiver.setSaldo(receiver.getSaldo() + pago.getAmount());
+		return repository.save(receiver);
+	}
+
+	@Bean
+	Consumer<PayDto> doPayFromBootcoin() {
+
+		return pago -> {
+			log.info("RECIBIENDO EL PAY...: " + pago);
+			Wallet sender = repository.findByPhoneNumber(pago.getPhoneNumberSender());
+			sender.setSaldo(sender.getSaldo() - pago.getAmount());
+			repository.save(sender);
+			Wallet receiver = repository.findByPhoneNumber(pago.getPhoneNumberReceiver());
+			receiver.setSaldo(receiver.getSaldo() + pago.getAmount());
+			repository.save(receiver);
+		};
+	}
+}

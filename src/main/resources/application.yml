@@ -12,11 +12,13 @@ spring:
           config: org.apache.kafka.common.security.scram.ScramLoginModule required username="ewk3pk5f" password="YYOpwGUHkcEBC-wRUOfblNdIdwBp20gh";
   cloud:
     function:
-      definition: saveWallet
+      definition: saveWallet;doPayFromBootcoin
     stream:
       bindings:
         saveWallet-in-0:
           destination: ewk3pk5f-default
+        doPayFromBootcoin-in-0:
+          destination: ewk3pk5f-nttdata
   application:
     name: wallet-service
   datasource:
